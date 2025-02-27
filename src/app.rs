@@ -1,23 +1,26 @@
-use crossterm::{
-    event::{self, EnableMouseCapture, KeyCode, KeyEvent},
-    execute,
-    terminal::{EnterAlternateScreen, LeaveAlternateScreen, disable_raw_mode, enable_raw_mode},
-};
-use ratatui::{
-    Frame, Terminal,
-    backend::CrosstermBackend,
-    layout::Layout,
-    widgets::{Block, Borders},
-};
-use std::{io, time::Duration};
+use crate::{input, ui, xml};
+use ratatui::{Terminal, backend::CrosstermBackend};
+use std::{io, path::PathBuf};
+
+pub enum AppState {
+    MainMenu,
+    Editor,
+    Exiting,
+}
 
 pub struct App {
     pub running: bool,
+    pub state: AppState,
+    pub file_path: Option<PathBuf>,
 }
 
 impl App {
-    pub fn new() -> App {
-        Self { running: true }
+    pub fn new() -> Self {
+        Self {
+            running: true,
+            state: AppState::MainMenu,
+            file_path: None,
+        }
     }
 
     pub fn run(
@@ -25,30 +28,13 @@ impl App {
         terminal: &mut Terminal<CrosstermBackend<std::io::Stdout>>,
     ) -> Result<(), io::Error> {
         while self.running {
-            terminal.draw(|frame| self.draw(frame))?;
+            terminal.draw(|frame| ui::draw_menu(frame))?;
             self.handle_events()?;
         }
         Ok(())
     }
 
-    fn draw(&mut self, frame: &mut Frame) {
-        let area = frame.area();
-        let block = Block::default()
-            .title("TagForge - XML Editor")
-            .borders(Borders::ALL);
-        frame.render_widget(block, area);
-    }
-
     fn handle_events(&mut self) -> io::Result<()> {
-        match event::read()? {
-            event::Event::Key(KeyEvent {
-                code, modifiers, ..
-            }) => match code {
-                KeyCode::Char('q') => self.running = false,
-                _ => {}
-            },
-            _ => {}
-        }
-        Ok(())
+        input::handle_input(self)
     }
 }
