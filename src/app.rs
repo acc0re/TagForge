@@ -2,6 +2,7 @@ use crate::{input, ui, xml};
 use crossterm::{execute, terminal::{Clear, ClearType}};
 use ratatui::{Terminal, backend::CrosstermBackend};
 use std::{io, path::PathBuf};
+use std::io::Write;
 
 #[derive(PartialEq, Clone)]
 pub enum AppState {
@@ -33,12 +34,6 @@ impl App {
         terminal: &mut Terminal<CrosstermBackend<std::io::Stdout>>,
     ) -> Result<(), io::Error> {
         while self.running {
-            if self.previous_state.as_ref() != Some(&self.state) {
-                print!("state changed");
-                execute!(terminal.backend_mut(), Clear(ClearType::All))?;
-                self.previous_state = Some(self.state.clone());
-            }
-
             match self.state {
                 AppState::MainMenu => terminal.draw(|frame| ui::draw_main_menu(frame))?,
                 AppState::SelectFile => terminal.draw(|frame| ui::draw_select_file(frame))?,
