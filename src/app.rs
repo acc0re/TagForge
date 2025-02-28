@@ -1,8 +1,11 @@
 use crate::{input, ui, xml};
-use crossterm::{execute, terminal::{Clear, ClearType}};
+use crossterm::{
+    execute,
+    terminal::{Clear, ClearType},
+};
 use ratatui::{Terminal, backend::CrosstermBackend};
-use std::{io, path::PathBuf};
 use std::io::Write;
+use std::{io, path::PathBuf};
 
 #[derive(PartialEq, Clone)]
 pub enum AppState {
@@ -16,7 +19,7 @@ pub struct App {
     pub running: bool,
     pub state: AppState,
     pub file_path: Option<PathBuf>,
-    pub previous_state: Option<AppState>,
+    pub input_buffer: String,
 }
 
 impl App {
@@ -25,7 +28,7 @@ impl App {
             running: true,
             state: AppState::MainMenu,
             file_path: None,
-            previous_state: None,
+            input_buffer: String::new(),
         }
     }
 
@@ -36,7 +39,7 @@ impl App {
         while self.running {
             match self.state {
                 AppState::MainMenu => terminal.draw(|frame| ui::draw_main_menu(frame))?,
-                AppState::SelectFile => terminal.draw(|frame| ui::draw_select_file(frame))?,
+                AppState::SelectFile => terminal.draw(|frame| ui::draw_select_file(self, frame))?,
                 AppState::Editor => terminal.draw(|frame| ui::draw_editor(frame))?,
                 AppState::Exiting => break,
             };
